@@ -1,0 +1,88 @@
+.container {
+    width: max-content;
+    margin: auto;
+    background-color: rgb(240, 240, 240);
+    padding: 3px;
+    font-family: Arial, Helvetica, sans-serif;
+    border: 1px solid rgb(60, 60, 60);
+    
+    box-shadow: 0 0 10px 8px rgba(0, 0, 0, 0.05), 3px 3px 10px 10px rgba(0, 0, 0, 0.05), 1px 1px 5px 2px rgba(0, 0, 0, 0.2);
+  }
+  
+  #display {
+    height: 48px;
+    font-size: 40px;
+    display: flex;
+    justify-content: flex-end;
+    align-items: flex-end;
+    padding: 5px 10px 20px 10px;
+  }
+
+  #displayMem {
+    height: 40px;
+    color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: flex-end;
+    align-items: flex-end;
+    align-content: flex-end;
+    padding: 0px 10px 0px 10px;
+  }
+  
+  .button-container {
+    max-width: 400px;
+    display: flex;
+    flex-wrap: wrap;
+  }
+  
+  .btn {         
+    flex-grow: 1;
+    /*кнопки заняли оставшееся место в контейнере. По умолчанию 0 - запрещено увеличиваться в размерах */
+    flex-basis: 25%;
+    padding: 18px;
+    border: 1.7px solid rgb(235, 235, 235);
+  }
+  
+  .btn-number {
+    background-color: rgb(255, 255, 255);
+    font-size: 21px;
+    font-weight: 600;
+  }
+  
+  .btn-number-mod{
+    background-color: rgb(255, 255, 255);
+  }
+
+  .btn-operator, .btn-action {
+    background-color: rgb(245, 245, 245);
+  }
+  
+  #btnEquals {
+    background-color: rgb(70, 150, 255, 0.5);
+  }
+  
+  .btn:hover {              
+    background-color: rgb(225, 225, 225);
+    border: 1.7px solid rgb(180, 180, 180);
+    }
+
+  #btnEquals:hover {
+    background-color: rgb(40, 150, 255);
+    border: 1.7px solid rgb(180, 180, 180);
+  }
+
+  #percnt {
+    padding: 21px;
+    font-size: 1em;
+  }
+
+  #frac1x, #times {
+    font-size: 1.2em;
+  }
+
+  #minus, #pm, #dot {
+    font-size: 1.1em;
+  }
+
+  #div, #equals, #plus{
+    font-size: 1em;
+  }
