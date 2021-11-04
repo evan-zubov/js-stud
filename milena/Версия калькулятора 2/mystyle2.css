@@ -1,5 +1,7 @@
-.container {
-    width: max-content;
+
+  .container {
+    min-width:  350px; /*265px;*/
+    max-width: 30%;
     margin: auto;
     background-color: rgb(240, 240, 240);
     padding: 3px;
@@ -11,11 +13,18 @@
   
   #display {
     height: 48px;
-    font-size: 40px;
     display: flex;
     justify-content: flex-end;
     align-items: flex-end;
     padding: 5px 10px 20px 10px;
+  }
+
+  .displayTextSize {
+    font-size: 40px;
+  }
+
+  .errorTextSize {
+    font-size: 34px;
   }
 
   #displayMem {
@@ -29,7 +38,7 @@
   }
   
   .button-container {
-    max-width: 400px;
+    max-width: 100%;
     display: flex;
     flex-wrap: wrap;
   }
@@ -37,6 +46,7 @@
   .btn {         
     flex-grow: 1;
     /*кнопки заняли оставшееся место в контейнере. По умолчанию 0 - запрещено увеличиваться в размерах */
+    flex-shrink: 3;
     flex-basis: 25%;
     padding: 18px;
     border: 1.7px solid rgb(235, 235, 235);
@@ -85,4 +95,16 @@
 
   #div, #equals, #plus{
     font-size: 1em;
+  }
+
+  /*@media (width: 500px) {
+    .container {
+      max-width: 75%;
+   }
+   body {
+     background-color: red;
+   }
+  }
+  @media (min-height: 680px) {
+  
   }

@@ -1,11 +1,7 @@
-//TODO 
-// вытащить из редюсера дисейблд баттон в рендер
-// уменьшить текст надписи
-// макс и мин ширину задать
-
-// TODO ..низкий приоритет:
-// negate рисовать +/-
-// ограничения на значения
+//TODO
+// вынести ф-и handleAdd
+// раставлять запятые на три символа
+// уменьшать текст, когда переполнение дисплея
 
 
 const OPERATORS = {
@@ -31,7 +27,6 @@ const ERRORS = {
     DIV_ZERO: 'Cannot divide by zero'
 }
 
-
 const disableBtnsOp = () => {
     const btnsOp = document.getElementsByClassName("btn-operator");
     const btnsNumMod = document.getElementsByClassName("btn-number-mod");
@@ -56,7 +51,8 @@ const showErrorMessage = ({ state, error }) => {
             ...state,
             display: ERRORS.DIV_ZERO,
             justPressedOperator: true,
-            btnsEnabled: false
+            btnsEnabled: false,
+            showingError: true
         }
     }
 }
@@ -68,6 +64,25 @@ const addEqualsToDisplayMem = (state) => {
         equalsPressedBefore: true
     }
 }
+
+/*const trimZeros = (s) => {
+    let resStr = s;
+    let lastSym = resStr.substr(-1);
+
+    while ((lastSym === '0' || lastSym === '.') && resStr.length !== 1 && resStr.indexOf('.') > -1) {
+        resStr = resStr.slice(0, -1);
+        lastSym = resStr.substr(-1);
+    }
+    return resStr;
+}
+
+const trimZeros = (s) => {
+    let lastSym = s.substr(-1);
+
+    return ((lastSym === '0' || lastSym === '.') && s.length !== 1 && s.indexOf('.') > -1) ?
+        trimZeros(s.slice(0, -1))
+        : s;
+}*/
 
 const calcEquals = (state) => {
     const { lastOperator, display, acc, equalsPressedBefore, currentOperator, displayMem } = state;
@@ -91,7 +106,7 @@ const calcEquals = (state) => {
         const nextDisplayMem = (equalsPressedBefore ? display + lastOperator + acc : acc + lastOperator + display);
         return {
             ...state,
-            ...(equalsPressedBefore ? { display: res } : { acc: Number(display), display: val }),
+            ...(equalsPressedBefore ? { display: String(val) } : { acc: Number(display), display: String(val) }),
             justPressedOperator: true,
             operatorPressedBefore: false,
             displayMem: nextDisplayMem,
@@ -117,7 +132,7 @@ const calc = (state) => {
         const nextDisplayMem = acc + lastOperator + val;
         return {
             ...state,
-            display: val,
+            display: String(val),
             displayMem: nextDisplayMem
         }
     }
@@ -128,7 +143,7 @@ const calc = (state) => {
         const nextDisplayMem = `${acc}${lastOperator}1/(${display})`;
         return {
             ...state,
-            display: valFrac,
+            display: String(valFrac),
             justPressedOperator: true,
             displayMem: nextDisplayMem
         }
@@ -139,7 +154,7 @@ const calc = (state) => {
         return {
             ...state,
             acc: val,
-            display: val,
+            display: String(val),
             justPressedOperator: true,
             displayMem: nextDisplayMem
         }
@@ -151,7 +166,7 @@ const calc = (state) => {
         const nextDisplayMem = `${acc}${lastOperator}sqr(${display})`;
         return {
             ...state,
-            display: valSquared,
+            display: String(valSquared),
             justPressedOperator: true,
             displayMem: nextDisplayMem
         }
@@ -162,7 +177,7 @@ const calc = (state) => {
         return {
             ...state,
             acc: val,
-            display: val,
+            display: String(val),
             justPressedOperator: true,
             displayMem: nextDisplayMem
         }
@@ -174,7 +189,7 @@ const calc = (state) => {
         const nextDisplayMem = `${acc}${lastOperator}\u{0221A}(${display})`;  // шаблонные строки
         return {
             ...state,
-            display: valRoot,
+            display: String(valRoot),
             justPressedOperator: true,
             displayMem: nextDisplayMem
         }
@@ -184,7 +199,7 @@ const calc = (state) => {
         return {
             ...state,
             acc: val,
-            display: val,
+            display: String(val),
             justPressedOperator: true,
             displayMem: `\u{0221A}(${display})`
         }
@@ -196,7 +211,7 @@ const calc = (state) => {
         const nextDisplayMem = acc + lastOperator + val;
         return {
             ...state,
-            display: val,
+            display: String(val),
             displayMem: nextDisplayMem
         }
     }
@@ -213,7 +228,7 @@ const calc = (state) => {
         return {
             ...state,
             acc: val,
-            display: val,
+            display: String(val),
             lastOperator: currentOperator,
             justPressedOperator: true,
             displayMem: nextDisplayMem
@@ -231,7 +246,8 @@ const DEFAULT_STATE = {
     displayMem: '',
     equalsPressedBefore: false,
     operatorPressedBefore: false,
-    btnsEnabled: true
+    btnsEnabled: true,
+    showingError: false
 }
 
 //состояние
@@ -243,10 +259,15 @@ const render = (state) => {
     const displayMemDomElement = document.getElementById("displayMem");
     displayDomElement.innerText = state.display;
     displayMemDomElement.innerText = state.displayMem;
-    if (!state.btnsEnabled) {
-        disableBtnsOp();
+    if (state.showingError) {
+        displayDomElement.classList.add('errorTextSize');
     } else {
+        displayDomElement.classList.remove('errorTextSize')
+    }
+    if (state.btnsEnabled) {
         enableBtnsOp();
+    } else {
+        disableBtnsOp();
     }
 }
 
@@ -267,7 +288,6 @@ const reducer = ({ state, action }) => {
     }
 
     if (action.type === 'number') {
-
         return {
             ...state,
             display: state.display === '0'
@@ -276,18 +296,26 @@ const reducer = ({ state, action }) => {
         };
     }
     if (action.type === 'numberDot') {
-        return {
-            ...state,
-            display: display + action.value
-        };
+        if (display.indexOf('.') > -1) {   //if (display.includes('.')) {
+            return state;
+        } else {
+            return {
+                ...state,
+                display: display + action.value
+            };
+        }
     }
     if (action.type === 'numberPM') {
-        return {
-            ...state,
-            display: display === '0'
-                ? display
-                : action.value + display
-        };
+        if (display.indexOf('-') > -1) {
+            return state;
+        } else {
+            return {
+                ...state,
+                display: display === '0'
+                    ? display
+                    : action.value + display
+            };
+        }
     }
     if (action.type === 'C') {
         return DEFAULT_STATE;
@@ -342,7 +370,7 @@ const reducer = ({ state, action }) => {
             acc: 0,
             display: '0',
             currentOperator: undefined,
-            displayMem: '0',
+            displayMem: '0'
         };
     }
     if (action.type === OPERATORS.EQUALS) {
