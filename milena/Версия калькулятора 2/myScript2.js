@@ -1,7 +1,7 @@
 //TODO
-// вынести ф-и handleAdd
 // раставлять запятые на три символа
 // уменьшать текст, когда переполнение дисплея
+// корень квадратный из 8 - ошибка, что-то делать с округлением
 
 
 const OPERATORS = {
@@ -84,9 +84,143 @@ const trimZeros = (s) => {
         : s;
 }*/
 
+const handlePercentInsidePlusMinusStatement = (state) => {
+    const { lastOperator, display, acc } = state;
+    const val = (acc * Number(display)) / 100;
+    const nextDisplayMem = acc + lastOperator + val;
+    return {
+        ...state,
+        display: String(val),
+        displayMem: nextDisplayMem
+    }
+}
+
+const handlePercentInsideMultiplicDivisionStatement = (state) => {
+    const { lastOperator, display, acc } = state;
+    const val = Number(display) / 100;
+    const nextDisplayMem = acc + lastOperator + val;
+    return {
+        ...state,
+        display: String(val),
+        displayMem: nextDisplayMem
+    }
+}
+
+const handleFractionInsideStatement = (state) => {
+    const { lastOperator, display, acc } = state;
+    const valFrac = 1 / Number(display);
+    const nextDisplayMem = `${acc}${lastOperator}1/(${display})`;
+    return {
+        ...state,
+        display: String(valFrac),
+        justPressedOperator: true,
+        displayMem: nextDisplayMem
+    }
+}
+
+const handleFractionSingleNumber = (state) => {
+    const { display } = state;
+    const val = 1 / Number(display);
+    const nextDisplayMem = `1/(${display})`;
+    return {
+        ...state,
+        acc: val,
+        display: String(val),
+        justPressedOperator: true,
+        displayMem: nextDisplayMem
+    }
+}
+
+const handleSquaredInsideStatement = (state) => {
+    const { lastOperator, display, acc } = state;
+    const valSquared = Math.pow(Number(display), 2);
+    const nextDisplayMem = `${acc}${lastOperator}sqr(${display})`;
+    return {
+        ...state,
+        display: String(valSquared),
+        justPressedOperator: true,
+        displayMem: nextDisplayMem
+    }
+}
+
+const handleSquaredSingleNumber = (state) => {
+    const { display } = state;
+    const val = Math.pow(Number(display), 2);
+    const nextDisplayMem = `sqr(${display})`;
+    return {
+        ...state,
+        acc: val,
+        display: String(val),
+        justPressedOperator: true,
+        displayMem: nextDisplayMem
+    }
+}
+
+const handleSquareRootInsideStatement = (state) => {
+    const { lastOperator, display, acc } = state;
+    const valRoot = Math.sqrt(Number(display));
+    const nextDisplayMem = `${acc}${lastOperator}\u{0221A}(${display})`;  // шаблонные строки
+    return {
+        ...state,
+        display: String(valRoot),
+        justPressedOperator: true,
+        displayMem: nextDisplayMem
+    }
+}
+
+const handleSquareRootSingleNumber = (state) => {
+    const { display } = state;
+    const val = Math.sqrt(Number(display));
+    return {
+        ...state,
+        acc: val,
+        display: String(val),
+        justPressedOperator: true,
+        displayMem: `\u{0221A}(${display})`
+    }
+}
+
+const divisionByZero = (state) => {
+    const { lastOperator, display, acc, currentOperator } = state;
+    state.displayMem = acc + lastOperator + display + currentOperator;
+    return showErrorMessage({ state, error: ERRORS.DIV_ZERO });
+}
+
+const handlePlusMinusMultDivOperations = (state) => {
+    const { lastOperator, display, acc, currentOperator } = state;
+    const func = OPERATOR_FUNCS[lastOperator];
+    const res = func(acc, Number(display));
+    const val = (+res.toFixed(15));
+    const nextDisplayMem = val + currentOperator;
+    return {
+        ...state,
+        acc: val,
+        display: String(val),
+        lastOperator: currentOperator,
+        justPressedOperator: true,
+        displayMem: nextDisplayMem
+    };
+}
+
+const handleEqualsPlusMinusMultDivOperations = (state) => {
+    const { lastOperator, display, acc, equalsPressedBefore } = state;
+
+    const func = OPERATOR_FUNCS[lastOperator];
+    const res = func(acc, Number(display));
+    const val = (+res.toFixed(15));
+    const nextDisplayMem = (equalsPressedBefore ? display + lastOperator + acc : acc + lastOperator + display);
+    return {
+        ...state,
+        ...(equalsPressedBefore ? { display: String(val) } : { acc: Number(display), display: String(val) }),
+        justPressedOperator: true,
+        operatorPressedBefore: false,
+        displayMem: nextDisplayMem,
+    };
+}
+
 const calcEquals = (state) => {
     const { lastOperator, display, acc, equalsPressedBefore, currentOperator, displayMem } = state;
-
+    // Fraction, Squared, Square root as single operations
     if ([OPERATORS.FRACTION, OPERATORS.X_SQUARED, OPERATORS.SQUARE_ROOT].includes(currentOperator) &&
         (lastOperator === undefined)) {
         return {
@@ -94,25 +228,13 @@ const calcEquals = (state) => {
             ...(equalsPressedBefore ? { displayMem: display } : { displayMem })
         };
     }
-
+    // Plus, Minus, Multiplication, Division after equals
     if ([OPERATORS.PLUS, OPERATORS.MINUS, OPERATORS.MULTIPLICATION, OPERATORS.DIVISION].includes(lastOperator)) {
         if (lastOperator === OPERATORS.DIVISION && Number(display) === 0) {
             return showErrorMessage({ state, error: ERRORS.DIV_ZERO });
         }
-
-        const func = OPERATOR_FUNCS[lastOperator];
-        const res = func(acc, Number(display));
-        const val = (+res.toFixed(15));
-        const nextDisplayMem = (equalsPressedBefore ? display + lastOperator + acc : acc + lastOperator + display);
-        return {
-            ...state,
-            ...(equalsPressedBefore ? { display: String(val) } : { acc: Number(display), display: String(val) }),
-            justPressedOperator: true,
-            operatorPressedBefore: false,
-            displayMem: nextDisplayMem,
-        };
+        return handleEqualsPlusMinusMultDivOperations(state);
     }
-
     return {
         ...state,
         displayMem: display
@@ -126,113 +248,46 @@ const calc = (state) => {
     // const lastOperator = state.lastOperator;
     // const display = state.display;
     // const acc = state.acc;
+
+    // Percent
     if ((currentOperator === OPERATORS.PERCENT) &&
         [OPERATORS.PLUS, OPERATORS.MINUS].includes(lastOperator)) {
-        const val = (acc * Number(display)) / 100;
-        const nextDisplayMem = acc + lastOperator + val;
-        return {
-            ...state,
-            display: String(val),
-            displayMem: nextDisplayMem
-        }
+        return handlePercentInsidePlusMinusStatement(state);
     }
-
-    if ((currentOperator === OPERATORS.FRACTION) &&
-        ([OPERATORS.PLUS, OPERATORS.MINUS, OPERATORS.MULTIPLICATION, OPERATORS.DIVISION].includes(lastOperator))) {
-        const valFrac = 1 / Number(display);
-        const nextDisplayMem = `${acc}${lastOperator}1/(${display})`;
-        return {
-            ...state,
-            display: String(valFrac),
-            justPressedOperator: true,
-            displayMem: nextDisplayMem
-        }
-    }
-    if (currentOperator === OPERATORS.FRACTION) {
-        const val = 1 / Number(display);
-        const nextDisplayMem = `1/(${display})`;
-        return {
-            ...state,
-            acc: val,
-            display: String(val),
-            justPressedOperator: true,
-            displayMem: nextDisplayMem
-        }
-    }
-
-    if ((currentOperator === OPERATORS.X_SQUARED) &&
-        ([OPERATORS.PLUS, OPERATORS.MINUS, OPERATORS.MULTIPLICATION, OPERATORS.DIVISION].includes(lastOperator))) {
-        const valSquared = Math.pow(Number(display), 2);
-        const nextDisplayMem = `${acc}${lastOperator}sqr(${display})`;
-        return {
-            ...state,
-            display: String(valSquared),
-            justPressedOperator: true,
-            displayMem: nextDisplayMem
-        }
-    }
-    if (currentOperator === OPERATORS.X_SQUARED) {
-        const val = Math.pow(Number(display), 2);
-        const nextDisplayMem = `sqr(${display})`;
-        return {
-            ...state,
-            acc: val,
-            display: String(val),
-            justPressedOperator: true,
-            displayMem: nextDisplayMem
-        }
-    }
-
-    if ((currentOperator === OPERATORS.SQUARE_ROOT) &&
-        ([OPERATORS.PLUS, OPERATORS.MINUS, OPERATORS.MULTIPLICATION, OPERATORS.DIVISION].includes(lastOperator))) {
-        const valRoot = Math.sqrt(Number(display));
-        const nextDisplayMem = `${acc}${lastOperator}\u{0221A}(${display})`;  // шаблонные строки
-        return {
-            ...state,
-            display: String(valRoot),
-            justPressedOperator: true,
-            displayMem: nextDisplayMem
-        }
-    }
-    if (currentOperator === OPERATORS.SQUARE_ROOT) {
-        const val = Math.sqrt(Number(display));
-        return {
-            ...state,
-            acc: val,
-            display: String(val),
-            justPressedOperator: true,
-            displayMem: `\u{0221A}(${display})`
-        }
-    }
-
     if ((currentOperator === OPERATORS.PERCENT) &&
         [OPERATORS.MULTIPLICATION, OPERATORS.DIVISION].includes(lastOperator)) {
-        const val = Number(display) / 100;
-        const nextDisplayMem = acc + lastOperator + val;
-        return {
-            ...state,
-            display: String(val),
-            displayMem: nextDisplayMem
-        }
+        return handlePercentInsideMultiplicDivisionStatement(state);
     }
-
+    // Fraction (дробь)
+    if ((currentOperator === OPERATORS.FRACTION) &&
+        ([OPERATORS.PLUS, OPERATORS.MINUS, OPERATORS.MULTIPLICATION, OPERATORS.DIVISION].includes(lastOperator))) {
+        return handleFractionInsideStatement(state);
+    }
+    if (currentOperator === OPERATORS.FRACTION) {
+        return handleFractionSingleNumber(state);
+    }
+    // Squared (степень в квадрате)
+    if ((currentOperator === OPERATORS.X_SQUARED) &&
+        ([OPERATORS.PLUS, OPERATORS.MINUS, OPERATORS.MULTIPLICATION, OPERATORS.DIVISION].includes(lastOperator))) {
+        return handleSquaredInsideStatement(state);
+    }
+    if (currentOperator === OPERATORS.X_SQUARED) {
+        return handleSquaredSingleNumber(state);
+    }
+    // Square root (корень квадратный)
+    if ((currentOperator === OPERATORS.SQUARE_ROOT) &&
+        ([OPERATORS.PLUS, OPERATORS.MINUS, OPERATORS.MULTIPLICATION, OPERATORS.DIVISION].includes(lastOperator))) {
+        return handleSquareRootInsideStatement(state);
+    }
+    if (currentOperator === OPERATORS.SQUARE_ROOT) {
+        return handleSquareRootSingleNumber(state);
+    }
+    // Plus, Minus, Multiplication, Division 
     if ([OPERATORS.PLUS, OPERATORS.MINUS, OPERATORS.MULTIPLICATION, OPERATORS.DIVISION].includes(lastOperator)) {
-        const func = OPERATOR_FUNCS[lastOperator];
         if (lastOperator === OPERATORS.DIVISION && Number(display) === 0) {
-            state.displayMem = acc + lastOperator + display + currentOperator;
-            return showErrorMessage({ state, error: ERRORS.DIV_ZERO });
+            return divisionByZero(state);
         }
-        const res = func(acc, Number(display));
-        const val = (+res.toFixed(15));
-        const nextDisplayMem = val + currentOperator;
-        return {
-            ...state,
-            acc: val,
-            display: String(val),
-            lastOperator: currentOperator,
-            justPressedOperator: true,
-            displayMem: nextDisplayMem
-        };
+        return handlePlusMinusMultDivOperations(state);
     }
     return state;
 }
