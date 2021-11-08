@@ -27,20 +27,20 @@ const ERRORS = {
   DIV_ZERO: "Cannot divide by zero",
 };
 
-const disableBtnsOp = () => {
+const getDisabledBtns = () => {
   const btnsOp = document.getElementsByClassName("btn-operator");
   const btnsNumMod = document.getElementsByClassName("btn-number-mod");
+  return [...btnsOp, ...btnsNumMod];
+};
 
-  [...btnsOp, ...btnsNumMod].forEach((element) => {
+const disableBtnsOp = () => {
+  getDisabledBtns().forEach((element) => {
     element.disabled = true;
   });
 };
 
 const enableBtnsOp = () => {
-  const btnsOp = document.getElementsByClassName("btn-operator");
-  const btnsNumMod = document.getElementsByClassName("btn-number-mod");
-
-  [...btnsOp, ...btnsNumMod].forEach((element) => {
+  getDisabledBtns().forEach((element) => {
     element.disabled = false;
   });
 };
@@ -55,6 +55,7 @@ const showErrorMessage = ({ state, error }) => {
       showingError: true,
     };
   }
+  return state;
 };
 
 const addEqualsToDisplayMem = (state) => {
@@ -68,13 +69,13 @@ const addEqualsToDisplayMem = (state) => {
   };
 };
 
+// TODO: можно попробовать вот такой стиль
 const handleCalcPercentInsidePlusMinusStatement = {
   name: "Percent inside Plus/Minus statement",
-  condition: (state) =>
-    state.currentOperator === OPERATORS.PERCENT &&
-    [OPERATORS.PLUS, OPERATORS.MINUS].includes(state.lastOperator),
-  handle: (state) => {
-    const { lastOperator, display, acc } = state;
+  condition: ({ currentOperator, lastOperator }) =>
+    currentOperator === OPERATORS.PERCENT &&
+    [OPERATORS.PLUS, OPERATORS.MINUS].includes(lastOperator),
+  handle: ({ lastOperator, display, acc }) => {
     const val = (acc * Number(display)) / 100;
     const nextDisplayMem = acc + lastOperator + val;
     return {
@@ -629,7 +630,9 @@ containerDomElement.addEventListener("click", (event) => {
       ? element
       : getParentButton(element.parentElement);
   const clickedButton = getParentButton(event.target);
-
+  if (clickedButton.disabled) {
+    return;
+  }
   //обновляем состояние приложения
   state = reducer({
     state,
