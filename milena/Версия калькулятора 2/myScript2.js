@@ -328,7 +328,7 @@ const calcEquals = (state) => {
     ? foundHandlerEquals.handle(state)
     : {
         ...state,
-        displayMem: display,
+        displayMem: state.display,
       };
 };
 
@@ -369,11 +369,16 @@ const DEFAULT_STATE = {
 //состояние
 let state = /*JSON.parse(localStorage.getItem('state')) || */ DEFAULT_STATE;
 
+const normalizeDisplay = (display) => {
+    const normalizedDisplay = Number(display).toLocaleString('en-US', {maximumFractionDigits: 16});
+    return normalizedDisplay;
+    }
+
 //отображение состояния на дисплее
 const render = (state) => {
   const displayDomElement = document.getElementById("display");
   const displayMemDomElement = document.getElementById("displayMem");
-  displayDomElement.innerText = state.display;
+  displayDomElement.innerText = normalizeDisplay(state.display);
   displayMemDomElement.innerText = state.displayMem;
   if (state.showingError) {
     displayDomElement.classList.add("errorTextSize");
