@@ -387,7 +387,7 @@ const render = (state) => {
   }
 };
 
-const handleReduceNumberJustPressedOperatorAfterDivisionByZero = {
+const handleReducerNumberJustPressedOperatorAfterDivisionByZero = {
   name: "Number entered after operator pressed and Error Division by Zero displayed",
   condition: ({ state, action }) =>
     action.type === "number" &&
@@ -398,7 +398,7 @@ const handleReduceNumberJustPressedOperatorAfterDivisionByZero = {
   },
 };
 
-const handleReduceNumberJustPressedOperator = {
+const handleReducerNumberJustPressedOperator = {
   name: "Number entered after operator pressed",
   condition: ({ state, action }) =>
     action.type === "number" && state.justPressedOperator,
@@ -411,7 +411,7 @@ const handleReduceNumberJustPressedOperator = {
   },
 };
 
-const handleReduceNumber = {
+const handleReducerNumber = {
   name: "Number entered",
   condition: ({ action }) => action.type === "number",
   handle: ({ state, action }) => {
@@ -423,7 +423,7 @@ const handleReduceNumber = {
   },
 };
 
-const handleReduceNumberDot = {
+const handleReducerNumberDot = {
   name: "Dot entered",
   condition: ({ state, action }) =>
     action.type === "numberDot" && state.display.indexOf(".") === -1,
@@ -436,7 +436,7 @@ const handleReduceNumberDot = {
   },
 };
 
-const handleReduceNumberPM = {
+const handleReducerNumberPM = {
   name: "+/- entered",
   condition: ({ state, action }) =>
     action.type === "numberPM" && state.display.indexOf("-") === -1,
@@ -449,7 +449,7 @@ const handleReduceNumberPM = {
   },
 };
 
-const handleReduceClear = {
+const handleReducerClear = {
   name: "C pressed",
   condition: ({ action }) => action.type === "C",
   handle: () => {
@@ -457,7 +457,7 @@ const handleReduceClear = {
   },
 };
 
-const handleReduceCancelEntryErrorDisplayed = {
+const handleReducerCancelEntryErrorDisplayed = {
   name: "CE pressed after error displayed",
   condition: ({ state, action }) =>
     action.type === "CE" && state.display === ERRORS.DIV_ZERO,
@@ -466,7 +466,7 @@ const handleReduceCancelEntryErrorDisplayed = {
   },
 };
 
-const handleReduceCancelEntry = {
+const handleReducerCancelEntry = {
   name: "CE pressed",
   condition: ({ action }) => action.type === "CE",
   handle: ({ state }) => {
@@ -477,7 +477,7 @@ const handleReduceCancelEntry = {
   },
 };
 
-const handleReduceBackSpaceErrorDisplayed = {
+const handleReducerBackSpaceErrorDisplayed = {
   name: "BackSpace pressed after error displayed",
   condition: ({ state, action }) =>
     action.type === "backSpace" && state.display === ERRORS.DIV_ZERO,
@@ -486,7 +486,7 @@ const handleReduceBackSpaceErrorDisplayed = {
   },
 };
 
-const handleReduceBackSpace = {
+const handleReducerBackSpace = {
   name: "BackSpace pressed",
   condition: ({ action }) => action.type === "backSpace",
   handle: ({ state }) => {
@@ -498,7 +498,7 @@ const handleReduceBackSpace = {
   },
 };
 
-const handleReduceOperatorPressedFirsTime = {
+const handleReducerOperatorPressedFirsTime = {
   name: "Plus/Minus/Multiplication/Division pressed for the first time",
   condition: ({ state, action }) =>
     [
@@ -521,7 +521,7 @@ const handleReduceOperatorPressedFirsTime = {
   },
 };
 
-const handleReduceOperatorPressedNotFirsTime = {
+const handleReducerOperatorPressedNotFirsTime = {
   name: "Plus/Minus/Multiplication/Division pressed not for the first time",
   condition: ({ state, action }) =>
     [
@@ -535,7 +535,7 @@ const handleReduceOperatorPressedNotFirsTime = {
   },
 };
 
-const handleReduceFracSquaredSquareRoot = {
+const handleReducerFracSquaredSquareRoot = {
   name: "Fraction/Squared/SquareRoot pressed",
   condition: ({ action }) =>
     [OPERATORS.FRACTION, OPERATORS.X_SQUARED, OPERATORS.SQUARE_ROOT].includes(
@@ -546,7 +546,7 @@ const handleReduceFracSquaredSquareRoot = {
   },
 };
 
-const handleReducePercentAfterOperator = {
+const handleReducerPercentAfterOperator = {
   name: "Percent pressed after Operator",
   condition: ({ state, action }) =>
     action.type === OPERATORS.PERCENT && state.operatorPressedBefore === true,
@@ -555,7 +555,7 @@ const handleReducePercentAfterOperator = {
   },
 };
 
-const handleReducePercentSingleNumber = {
+const handleReducerPercentSingleNumber = {
   name: "Percent pressed after single number entered",
   condition: ({ state, action }) =>
     action.type === OPERATORS.PERCENT && state.operatorPressedBefore === false,
@@ -570,7 +570,7 @@ const handleReducePercentSingleNumber = {
   },
 };
 
-const handleReduceEqualsErrorDisplayed = {
+const handleReducerEqualsErrorDisplayed = {
   name: "Equals pressed after error displayed",
   condition: ({ state, action }) =>
     action.type === OPERATORS.EQUALS && state.display === ERRORS.DIV_ZERO,
@@ -579,7 +579,7 @@ const handleReduceEqualsErrorDisplayed = {
   },
 };
 
-const handleReduceEquals = {
+const handleReducerEquals = {
   name: "Equals pressed",
   condition: ({ action }) => action.type === OPERATORS.EQUALS,
   handle: () => {
@@ -594,23 +594,23 @@ const reducer = ({ state, action }) => {
   console.log("Action:", action);
 
   const foundHandler = [
-    handleReduceNumberJustPressedOperatorAfterDivisionByZero,
-    handleReduceNumberJustPressedOperator,
-    handleReduceNumber,
-    handleReduceNumberDot,
-    handleReduceNumberPM,
-    handleReduceClear,
-    handleReduceCancelEntryErrorDisplayed,
-    handleReduceCancelEntry,
-    handleReduceBackSpaceErrorDisplayed,
-    handleReduceBackSpace,
-    handleReduceOperatorPressedFirsTime,
-    handleReduceOperatorPressedNotFirsTime,
-    handleReduceFracSquaredSquareRoot,
-    handleReducePercentAfterOperator,
-    handleReducePercentSingleNumber,
-    handleReduceEqualsErrorDisplayed,
-    handleReduceEquals,
+    handleReducerNumberJustPressedOperatorAfterDivisionByZero,
+    handleReducerNumberJustPressedOperator,
+    handleReducerNumber,
+    handleReducerNumberDot,
+    handleReducerNumberPM,
+    handleReducerClear,
+    handleReducerCancelEntryErrorDisplayed,
+    handleReducerCancelEntry,
+    handleReducerBackSpaceErrorDisplayed,
+    handleReducerBackSpace,
+    handleReducerOperatorPressedFirsTime,
+    handleReducerOperatorPressedNotFirsTime,
+    handleReducerFracSquaredSquareRoot,
+    handleReducerPercentAfterOperator,
+    handleReducerPercentSingleNumber,
+    handleReducerEqualsErrorDisplayed,
+    handleReducerEquals,
   ].find((handler) => handler.condition({ state, action }));
 
   console.log(
