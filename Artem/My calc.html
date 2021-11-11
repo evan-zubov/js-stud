@@ -88,16 +88,16 @@
     <div class="container" id="container">
         <div class="inwin" id="display">0</div>
         <div class="memory">
-            <div class="button greybtn_1">MC</div>
-            <div class="button greybtn_1">MR</div>
-            <div class="button greybtn_1">M+</div>
-            <div class="button greybtn_1">M-</div>
-            <div class="button greybtn_1">MSx</div>
+            <div class="button greybtn_1" data-type="MC">MC</div>
+            <div class="button greybtn_1" data-type="MR">MR</div>
+            <div class="button greybtn_1" data-type="M+">M+</div>
+            <div class="button greybtn_1" data-type="M-">M-</div>
+            <div class="button greybtn_1" data-type="MS">MS</div>
 
         </div>
 
         <div class="button-container">
-            <button class="button greybtn btn-operator" id="prct">%</button>
+            <button class="button greybtn btn-operator" data-type="%">%</button>
             <button id='btnCancelEntry' class="button btn-action greybtn" data-type="CE">CE</button>
             <button id='btnClear' class="button greybtn btn-action" data-type="C">C</button>
             <button class="button greybtn" data-type="BP">
@@ -125,7 +125,7 @@
             <button class="button greybtn btn-operator" data-type="+">+</button>
             <button class="button" data-type="+/-">+/-</button>
             <button class="button btn-number" data-value="0" data-type="number">0</button>
-            <button class="button">.</button>
+            <button class="button" data-value="." data-type="number">.</button>
             <button class="button goldbtn" id="Calc" data-type="=">=</button>
 
 
@@ -152,22 +152,17 @@
     //btn2.addEventListener('click', btnEventListener);
     //btn3.addEventListener('click', btnEventListener);
 
-    const MODES = {
-        ADDING: 'ADDING',
-        AFTER_ADDING: 'AFTER_ADD_CLICK'
-    }
-
     const OPERATORS = {
         PLUS: '+',
         MINUS: '-',
         EQUALS: '=',
         DEVIDE: '/',
-        MULTIPL: '*'
-
+        MULTIPL: '*',
+        PERCENT: '%'
     }
 
     const calc = (state) => {
-        const { lastOperator, display, acc } = state;
+        const { lastOperator, display, acc, mmracc } = state;
         // то же самое что 
         // const lastOperator = state.lastOperator;
         // const display = state.display;
@@ -208,19 +203,34 @@
                 justPressedOperator: true,
             }
         }
-
+       
         return state;
     }
 
+    //const mmr = (memory) => {
+    //    const { memoryOperator, display, memoryacc } = memory;
+    //    if (memoryOperator === OPERATORS.MEMORYADD) {
+    //        const mmrval = Number(display) + memoryacc;
+    //        return {
+    //          ...memory,
+    //            memoryacc: mmrval,
+    //            display: mmrval,
+    //            memoryOperator: true,
+    //        }
+    //    }
+
 
     //состояние
-    let state = JSON.parse(localStorage.getItem('state')) || {
+    const DEFAULT_STATE = {
         acc: 0,
+        mmracc: 0,
         display: '0',
         lastOperator: undefined,
         justPressedOperator: false,
         mode: undefined
-    };
+    }
+    let state = JSON.parse(localStorage.getItem('state')) || DEFAULT_STATE;
+   
 
 
 
@@ -241,7 +251,7 @@
                 ...state,
                 display: action.value,
                 justPressedOperator: false
-            }
+            };
         }
         if (action.type === 'number') {
             return {
@@ -291,12 +301,48 @@
         }
         if (action.type === 'C') {
             return {
+                ...state,
                 acc: 0,
                 display: '0',
                 lastOperator: undefined,
                 justPressedOperator: false,
                 mode: undefined
-
+            }
+        }
+        if (action.type === 'M+') {
+            return {
+                ...state,
+                mmracc: undefined
+                    ? 0 + Number(state.display)
+                    : state.mmracc + Number(state.display)
+            };
+        }
+        if (action.type === 'M-') {
+            return {
+                ...state,
+                mmracc: undefined
+                    ? 0 - Number(state.display)
+                    : state.mmracc - Number(state.display)
+            
+            };
+        }
+        if (action.type === 'MS') {
+            return {
+                ...state,
+                mmracc: Number(state.display) 
+            
+            };
+        }
+        if (action.type === 'MR') {
+            return {
+                ...state,
+                display: String(state.mmracc)
+            };
+        }
+        if (action.type === 'MC') {
+            return {
+                ...state,
+                mmracc: 0
             };
         }
         if (action.type === OPERATORS.PLUS) {
@@ -305,7 +351,7 @@
                 acc: Number(state.display),
                 lastOperator: OPERATORS.PLUS,
                 justPressedOperator: true
-            }
+            };
         }
         if (action.type === OPERATORS.MINUS) {
             return {
@@ -313,7 +359,7 @@
                 acc: Number(state.display),
                 lastOperator: OPERATORS.MINUS,
                 justPressedOperator: true
-            }
+            };
         }
         if (action.type === OPERATORS.DEVIDE) {
             return {
@@ -321,7 +367,7 @@
                 acc: Number(state.display),
                 lastOperator: OPERATORS.DEVIDE,
                 justPressedOperator: true
-            }
+            };
         }
         if (action.type === OPERATORS.MULTIPL) {
             return {
@@ -329,11 +375,12 @@
                 acc: Number(state.display),
                 lastOperator: OPERATORS.MULTIPL,
                 justPressedOperator: true
-            }
+            };
         }
         if (action.type === OPERATORS.EQUALS) {
             return calc(state);
         }
+        
         return state;
     }
 
