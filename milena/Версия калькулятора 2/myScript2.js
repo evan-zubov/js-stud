@@ -1,8 +1,5 @@
 //TODO
-// раставлять запятые на три символа, .map Ф-я может называться normalize display
-// принимает state и возвращает state с нормализованным display
-// уменьшать текст, когда переполнение дисплея
-// корень квадратный из 8 - ошибка, что-то делать с округлением
+//с точкой на дисплее 17 символов
 
 const OPERATORS = {
   PLUS: "+",
@@ -195,11 +192,12 @@ const handleCalcSquareRootInsideStatement = {
     ].includes(state.lastOperator),
   handle: (state) => {
     const { lastOperator, display, acc } = state;
-    const valRoot = Math.sqrt(Number(display));
+    const res = Math.sqrt(Number(display));
+    const val = +res.toFixed(14);
     const nextDisplayMem = `${acc}${lastOperator}\u{0221A}(${display})`; // шаблонные строки
     return {
       ...state,
-      display: String(valRoot),
+      display: String(val),
       justPressedOperator: true,
       displayMem: nextDisplayMem,
     };
@@ -211,7 +209,8 @@ const handleCalcSquareRootSingleNumber = {
   condition: (state) => state.currentOperator === OPERATORS.SQUARE_ROOT,
   handle: (state) => {
     const { display } = state;
-    const val = Math.sqrt(Number(display));
+    const res = Math.sqrt(Number(display));
+    const val = +res.toFixed(14);
     return {
       ...state,
       acc: val,
@@ -233,6 +232,35 @@ const handleCalcDivisionByZero = {
   },
 };
 
+function doDecimalSafeMath(a, operation, b, precision) {
+    function decimalLength(numStr) {
+        var pieces = numStr.toString().split(".");
+        if(!pieces[1]) return 0;
+        return pieces[1].length;
+    }
+    // Figure out what we need to multiply by to make everything a whole number
+    precision = precision || Math.pow(10, Math.max(decimalLength(a), decimalLength(b)));
+
+    a = a*precision;
+    b = b*precision;
+
+    switch(operation) {
+        case '*':
+            precision = precision*precision;
+        break;
+        case '/':
+            precision = 1;
+        break;
+    }
+
+    const func = OPERATOR_FUNCS[operation];
+    var result = func(a, b); 
+
+    // Remove our multiplier to put the decimal back.
+    return result/precision;
+}
+
+
 const handleCalcPlusMinusMultDivOperations = {
   name: "Plus/Minus/Multiplication/Division operations",
   condition: (state) =>
@@ -244,13 +272,11 @@ const handleCalcPlusMinusMultDivOperations = {
     ].includes(state.lastOperator),
   handle: (state) => {
     const { lastOperator, display, acc, currentOperator } = state;
-    const func = OPERATOR_FUNCS[lastOperator];
-    const res = func(acc, Number(display));
-    const val = +res.toFixed(15);
+    const val = doDecimalSafeMath(acc, lastOperator, Number(display));
     const nextDisplayMem = val + currentOperator;
     return {
-      ...state,
-      acc: val,
+        ...state,
+        acc: val,
       display: String(val),
       lastOperator: currentOperator,
       justPressedOperator: true,
@@ -294,11 +320,10 @@ const handleCalcEqualsPlusMinusMultDivOperations = {
     ].includes(state.lastOperator),
   handle: (state) => {
     const { lastOperator, display, acc, equalsPressedBefore } = state;
-    const func = OPERATOR_FUNCS[lastOperator];
-    const res = equalsPressedBefore
-      ? func(Number(display), acc)
-      : func(acc, Number(display));
-    const val = +res.toFixed(15);
+    const val = equalsPressedBefore
+    ? doDecimalSafeMath(Number(display), lastOperator, acc)
+    : doDecimalSafeMath(acc, lastOperator, Number(display));
+
     const nextDisplayMem = equalsPressedBefore
       ? display + lastOperator + acc
       : acc + lastOperator + display;
@@ -379,6 +404,7 @@ const render = (state) => {
   const displayDomElement = document.getElementById("display");
   const displayMemDomElement = document.getElementById("displayMem");
   displayDomElement.innerText = normalizeDisplay(state.display);
+  textFit(displayDomElement, {minFontSize:30, maxFontSize: 40});
   displayMemDomElement.innerText = state.displayMem;
   if (state.showingError) {
     displayDomElement.classList.add("errorTextSize");
@@ -416,9 +442,17 @@ const handleReducerNumberJustPressedOperator = {
   },
 };
 
+const handleDisplayLength = {
+    name: "Check display length",
+    condition: ({ state, action }) => action.type === "number" && state.display.length >= 16,
+    handle: ({ state }) => {
+      return state;
+    },
+  };
+
 const handleReducerNumber = {
   name: "Number entered",
-  condition: ({ action }) => action.type === "number",
+  condition: ({ action }) => action.type === "number" && state.display.length < 16,
   handle: ({ state, action }) => {
     const { display } = state;
     return {
@@ -598,12 +632,15 @@ const handleReducerEquals = {
 const reducer = ({ state, action }) => {
   console.log("Action:", action);
 
+
+
   const foundHandler = [
     handleReducerNumberJustPressedOperatorAfterDivisionByZero,
     handleReducerNumberJustPressedOperator,
     handleReducerNumber,
     handleReducerNumberDot,
     handleReducerNumberPM,
+    handleDisplayLength,
     handleReducerClear,
     handleReducerCancelEntryErrorDisplayed,
     handleReducerCancelEntry,
@@ -622,6 +659,7 @@ const reducer = ({ state, action }) => {
     "Reducer handler triggered: ",
     foundHandler ? foundHandler.name : "none"
   );
+
 
   return foundHandler ? foundHandler.handle({ state, action }) : state;
 };
